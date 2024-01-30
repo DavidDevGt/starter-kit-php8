@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Models;
+
 class Session {
     public static function init() {
         session_start();
