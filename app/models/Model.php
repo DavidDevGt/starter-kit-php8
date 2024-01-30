@@ -32,7 +32,7 @@ abstract class Model
     public function save()
     {
         $attributes = get_object_vars($this);
-        unset($attributes['conn'], $attributes['table']); // Excluir la conexión y el nombre de la tabla
+        unset($attributes['conn'], $attributes['table']);
 
         if ($this->id) {
             // Actualizar
@@ -44,7 +44,7 @@ abstract class Model
                     $values[] = $value;
                 }
             }
-            $values[] = $this->id; // Agregar 'id' al final para la condición WHERE
+            $values[] = $this->id;
             $stmt = $this->conn->prepare("UPDATE {$this->table} SET " . implode(', ', $setParts) . " WHERE id = ?");
         } else {
             // Insertar
@@ -71,15 +71,59 @@ abstract class Model
         }
     }
 
-    // Método genérico para obtener relaciones
-    // $relatedModel es el nombre de la clase del modelo relacionado
-    // $foreignKey es la clave en la tabla relacionada que apunta a este modelo
-    public function related($relatedModel, $foreignKey)
+    public function delete()
+    {
+        if ($this->id) {
+            $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE id = ?");
+            $stmt->bind_param('i', $this->id);
+            $stmt->execute();
+        }
+    }
+
+    public function softDelete()
+    {
+        if ($this->id) {
+            $stmt = $this->conn->prepare("UPDATE {$this->table} SET active = FALSE WHERE id = ?");
+            $stmt->bind_param('i', $this->id);
+            $stmt->execute();
+        }
+    }
+
+    //* Relaciones de tablas *//
+    // 1:N
+
+    public function hasMany($relatedModel, $foreignKey, $localKey = 'id')
     {
         $relatedInstance = new $relatedModel();
         $relatedTable = $relatedInstance->table;
 
         $stmt = $this->conn->prepare("SELECT * FROM {$relatedTable} WHERE {$foreignKey} = ?");
-        //* Sin terminar
+        $stmt->bind_param('i', $this->$localKey);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    // 1:1
+    public function hasOne($relatedModel, $foreignKey, $localKey = 'id')
+    {
+        $relatedInstance = new $relatedModel();
+        $relatedTable = $relatedInstance->table;
+
+        $stmt = $this->conn->prepare("SELECT * FROM {$relatedTable} WHERE {$foreignKey} = ? LIMIT 1");
+        $stmt->bind_param('i', $this->$localKey);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
+
+    // N:M (usar una tabla intermedia)
+    public function belongsToMany($relatedModel, $pivotTable, $foreignKey, $relatedKey, $localKey = 'id')
+    {
+        $relatedInstance = new $relatedModel();
+        $relatedTable = $relatedInstance->table;
+
+        $stmt = $this->conn->prepare("SELECT {$relatedTable}.* FROM {$relatedTable} INNER JOIN {$pivotTable} ON {$pivotTable}.{$relatedKey} = {$relatedTable}.id WHERE {$pivotTable}.{$foreignKey} = ?");
+        $stmt->bind_param('i', $this->$localKey);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 }
