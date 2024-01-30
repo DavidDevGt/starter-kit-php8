@@ -4,7 +4,8 @@ namespace App\Models;
 
 use App\Config\Database;
 
-class User extends Model {
+class User extends Model
+{
     protected $table = 'user';
 
     public $id;
@@ -15,5 +16,10 @@ class User extends Model {
     public $created_at;
     public $updated_at;
 
-    
+    // EJEMPLO DE USO RELACIONES
+    // Método para obtener los posts de un usuario
+    // public function posts()
+    // {
+    //     return $this->hasMany(Post::class, 'user_id');
+    // }
 }
