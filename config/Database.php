@@ -6,6 +6,9 @@ require_once __DIR__ . '/../lib/vendor/autoload.php';
 $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
 
+// Imprimir todas las variables de entorno
+// var_dump($_ENV);
+
 class Database
 {
     private $host;

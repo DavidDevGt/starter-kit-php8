@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Config\Database;
 
-class User {
+class User extends Model {
     protected $table = 'user';
 
     public $id;
