@@ -44,7 +44,7 @@ INSERT INTO role (code, name, description) VALUES ('VEN', 'Vendedor', 'Descripci
 
 INSERT INTO user (username, password, email, role_id) VALUES ('admin', 'admin', 'joshuexd1@gmail.com', 1);
 
-CREATE TABLE modules (
+CREATE TABLE module (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order INT NOT NULL,
     name VARCHAR(255) NOT NULL UNIQUE,
