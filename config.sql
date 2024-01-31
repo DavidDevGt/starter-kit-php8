@@ -112,6 +112,7 @@ CREATE TABLE company (
     company_email2 VARCHAR(100),
     company_website VARCHAR(50),
     company_logo_url VARCHAR(255),
+    company_country_id INT NOT NULL DEFAULT 1, -- 1 = Guatemala
     active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
