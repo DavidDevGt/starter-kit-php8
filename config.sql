@@ -44,6 +44,15 @@ CREATE TABLE module (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (1, 'Clientes', TRUE, 0, '/modules/clientes/index.php');
+INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (2, 'Productos', TRUE, 0, '/modules/productos/index.php');
+INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (3, 'Inventario', TRUE, 0, '/modules/inventario/index.php');
+INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (4, 'Pedidos', TRUE, 0, '/modules/pedidos/index.php');
+INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (5, 'Facturacion', TRUE, 0, '/modules/facturacion/index.php');
+INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (6, 'Finanzas', TRUE, 0, '/modules/finanzas/index.php');
+INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (7, 'Reportes', TRUE, 0, '/modules/reportes/index.php');
+INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (8, 'Sistemas', TRUE, 0, '/modules/sistemas/index.php');
+
 CREATE TABLE permission (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -110,6 +119,7 @@ CREATE TABLE department (
     id INT AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR (10) NOT UNIQUE,
     name VARCHAR (255) NOT UNIQUE,
+    country_id INT NOT NULL DEFAULT 1, -- 1 = Guatemala
     active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP

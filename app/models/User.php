@@ -35,10 +35,9 @@ class User extends Model
         }
     }
 
-    // EJEMPLO DE USO RELACIONES
-    // Método para obtener los posts de un usuario
-    // public function posts()
-    // {
-    //     return $this->hasMany(Post::class, 'user_id');
-    // }
+    // Método para obtener el rol de un usuario
+    public function role()
+    {
+        return $this->hasOne(Role::class, 'id', 'role_id');
+    }
 }
