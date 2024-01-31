@@ -91,6 +91,7 @@ CREATE TABLE tax (
     company_id INT NOT NULL,
     code VARCHAR(10) NOT NULL UNIQUE,
     name VARCHAR(45) NOT NULL,
+    country_id INT NOT NULL DEFAULT 1, -- 1 = Guatemala
     value DECIMAL(4, 2) NOT NULL,
     active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
