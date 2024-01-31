@@ -27,8 +27,8 @@ session_destroy();
                     </span>
                 </div>
 
-                <div class="login100-form">
-                    <div class="wrap-input100 mb-5">
+                <div class="login100-form mt-3">
+                    <div class="wrap-input100 mb-3">
                         <span class="label-input100">Usuario</span>
                         <input class="input100" type="text" id="usuario" placeholder="Ingrese su usuario">
                         <span class="focus-input100"></span>
@@ -42,7 +42,7 @@ session_destroy();
 
                     <div class="container-login100-form-btn">
                         <button class="login100-form-btn" id="btn_login">
-                            Ingresar
+                            Iniciar Sesión
                         </button>
                     </div>
                 </div>
