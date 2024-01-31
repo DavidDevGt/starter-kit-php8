@@ -50,6 +50,7 @@ CREATE TABLE module (
     name VARCHAR(255) NOT NULL UNIQUE,
     primary_module BOOLEAN NOT NULL, -- TRUE: primary, FALSE: secondary
     father_module_id INT NOT NULL DEFAULT 0, -- 0: primary module, "father_module_id": secondary module
+    route VARCHAR(255) NOT NULL, -- /modules/folder/file.php?md=$id
     active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
