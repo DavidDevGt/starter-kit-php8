@@ -105,14 +105,32 @@ CREATE TABLE company (
     company_nit VARCHAR(20) NOT NULL UNIQUE,
     company_address TEXT,
     company_postal_code VARCHAR(5),
-    company_phone1 VARCHAR(45),
-    company_phone2 VARCHAR(45),
-    company_phone3 VARCHAR(45),
-    company_email1 VARCHAR(100),
-    company_email2 VARCHAR(100),
+    company_phone_principal VARCHAR(45),
+    company_phone_secondary VARCHAR(45),
+    company_email_principal VARCHAR(100),
+    company_email_secondary VARCHAR(100),
     company_website VARCHAR(50),
     company_logo_url VARCHAR(255),
     company_country_id INT NOT NULL DEFAULT 1, -- 1 = Guatemala
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE department (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR (10) NOT UNIQUE,
+    name VARCHAR (255) NOT UNIQUE,
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE municipality (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    department_id INT NOT NULL,
+    code VARCHAR (10) NOT UNIQUE,
+    name VARCHAR (255) NOT UNIQUE,
     active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
