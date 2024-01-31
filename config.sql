@@ -65,6 +65,27 @@ CREATE TABLE permission (
     last_user_id INT NOT NULL DEFAULT 0 -- 0: system, "last_user_id": $user_id
 );
 
+CREATE TABLE country (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(10) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    is_principal BOOLEAN DEFAULT FALSE, -- TRUE: principal, FALSE: secondary
+    currency_symbol VARCHAR(5) NOT NULL,
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+INSERT INTO country (code, name, is_principal, currency_symbol) VALUES ('GT', 'Guatemala', TRUE, 'Q');
+INSERT INTO country (code, name, is_principal, currency_symbol) VALUES ('US', 'Estados Unidos', FALSE, 'USD $');
+INSERT INTO country (code, name, is_principal, currency_symbol) VALUES ('MX', 'México', FALSE, 'MXN $');
+INSERT INTO country (code, name, is_principal, currency_symbol) VALUES ('HN', 'Honduras', FALSE, 'L');
+INSERT INTO country (code, name, is_principal, currency_symbol) VALUES ('SV', 'El Salvador', FALSE, 'USD $');
+INSERT INTO country (code, name, is_principal, currency_symbol) VALUES ('NI', 'Nicaragua', FALSE, 'C$');
+INSERT INTO country (code, name, is_principal, currency_symbol) VALUES ('CR', 'Costa Rica', FALSE, '₡');
+INSERT INTO country (code, name, is_principal, currency_symbol) VALUES ('PA', 'Panamá', FALSE, 'B/.');
+INSERT INTO country (code, name, is_principal, currency_symbol) VALUES ('CH', 'China', FALSE, 'CNY ¥');
+
 CREATE TABLE tax (
     id INT AUTO_INCREMENT PRIMARY KEY,
     company_id INT NOT NULL,
@@ -88,7 +109,8 @@ CREATE TABLE company (
     company_phone3 VARCHAR(45),
     company_email1 VARCHAR(100),
     company_email2 VARCHAR(100),
-    company_website VARCHAR(150),
+    company_website VARCHAR(50),
+    company_logo_url VARCHAR(255),
     active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
