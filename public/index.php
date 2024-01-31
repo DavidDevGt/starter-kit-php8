@@ -14,6 +14,7 @@ session_destroy();
     <link rel="icon" href="./src/favicon.png" type="image/x-icon">
     <title>Starter Kit</title>
     <link href="../src/assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../src/style-login.css">
 </head>
 
