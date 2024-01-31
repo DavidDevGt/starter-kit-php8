@@ -12,6 +12,7 @@ class User extends Model
     public $username;
     public $password;
     public $email;
+    public $role_id;
     public $active;
     public $created_at;
     public $updated_at;
