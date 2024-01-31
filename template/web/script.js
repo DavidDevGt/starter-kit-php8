@@ -1,5 +1,4 @@
-'use strict';
+"use strict";
 
 const nombreFuncion = () => {};
 
-$(document).ready(function () {});
