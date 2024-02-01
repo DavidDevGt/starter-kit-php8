@@ -14,4 +14,14 @@ class Permission extends Model
     public $active;
     public $created_at;
     public $updated_at;
+
+    public function user()
+    {
+        return $this->hasOne(User::class, 'id', 'user_id');
+    }
+
+    public function module()
+    {
+        return $this->hasOne(Module::class, 'id', 'module_id');
+    }
 }

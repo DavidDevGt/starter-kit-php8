@@ -17,4 +17,9 @@ class Module extends Model
     public $active;
     public $created_at;
     public $updated_at;
+
+    public function permissions()
+    {
+        return $this->hasMany(Permission::class, 'module_id', 'id');
+    }
 }

@@ -26,18 +26,25 @@ class User extends Model
         $result = $stmt->get_result()->fetch_assoc();
 
         if ($result && password_verify($password, $result['password'])) {
-            // Si la contraseña coincide, llenar el modelo con los datos del usuario y retornarlo
             $this->fill($result);
-            return $this; // Retorna la instancia del modelo User con los datos del usuario autenticado
+            return $this;
         } else {
-            // Si las credenciales no coinciden o el usuario no existe, retornar null
             return null;
         }
     }
 
-    // Método para obtener el rol de un usuario
     public function role()
     {
         return $this->hasOne(Role::class, 'id', 'role_id');
+    }
+
+    public function permissions()
+    {
+        return $this->hasMany(Permission::class, 'user_id', 'id');
+    }
+
+    public function employeeData()
+    {
+        return $this->hasOne(EmployeeData::class, 'user_id', 'id');
     }
 }

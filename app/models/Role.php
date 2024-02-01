@@ -15,4 +15,9 @@ class Role extends Model
     public $active;
     public $created_at;
     public $updated_at;
+
+    public function users()
+    {
+        return $this->hasMany(User::class, 'role_id', 'id');
+    }
 }
