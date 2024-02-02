@@ -3,7 +3,7 @@ ini_set('log_errors', 1);
 ini_set('error_log', './errors.log');
 error_reporting(E_ALL);
 
-require_once __DIR__ . "/../lib/vendor/autoload.php";
+require_once __DIR__ . "/../vendor/autoload.php";
 
 use App\Controllers\SessionController;
 
