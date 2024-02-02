@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+ini_set('log_errors', 1);
+ini_set('error_log', './errors.log');
+error_reporting(E_ALL);
+
 use App\Config\Database;
 
 abstract class Model

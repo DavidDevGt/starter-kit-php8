@@ -2,6 +2,10 @@
 
 namespace App\Controllers;
 
+ini_set('log_errors', 1);
+ini_set('error_log', './errors.log');
+error_reporting(E_ALL);
+
 use App\Models\Session;
 use App\Models\User;
 
