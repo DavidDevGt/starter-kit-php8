@@ -44,6 +44,9 @@ CREATE TABLE session_logs (
     FOREIGN KEY (user_id) REFERENCES user(id)
 );
 
+ALTER TABLE session_logs
+ADD UNIQUE (session_token);
+
 CREATE TABLE module (
     id INT AUTO_INCREMENT PRIMARY KEY,
     position INT NOT NULL,
