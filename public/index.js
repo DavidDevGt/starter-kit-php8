@@ -35,8 +35,8 @@ $(document).ready(function () {
         username: username.val(),
         password: password.val(),
       },
-      success: function (response) {
-        const data = JSON.parse(response);
+      dataType: "json",
+      success: function (data) {
         if (data.success) {
           Swal.fire({
             icon: "success",
@@ -45,7 +45,7 @@ $(document).ready(function () {
             timer: 1500,
             showConfirmButton: false,
           }).then(() => {
-            window.location.href = "./modules/dashboard/index.php";
+            window.location.href = "../modules/dashboard/index.php";
           });
         } else {
           Swal.fire({

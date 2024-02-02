@@ -13,6 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? null;
     $password = $_POST['password'] ?? null;
 
+    error_log("username: $username, password: $password");
+
     if (!$username || !$password) {
         http_response_code(400); // Bad Request
         echo json_encode(['success' => false, 'message' => 'Usuario y contraseña requeridos.']);
@@ -20,7 +22,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $sessionController = new SessionController();
+
+    error_log("sessionController: " . json_encode($sessionController->login($username, $password)));
+
     $loginResult = $sessionController->login($username, $password);
+
+    error_log("loginResult: " . json_encode($loginResult));
 
     if ($loginResult) {
         echo json_encode(['success' => true, 'message' => 'Inicio de sesión exitoso.']);

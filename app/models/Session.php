@@ -8,16 +8,23 @@ error_reporting(E_ALL);
 
 use App\Config\Database;
 
-class Session {
-    public static function init() {
-        session_start();
+class Session
+{
+    public static function init()
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
     }
 
-    public static function set($key, $value) {
+
+    public static function set($key, $value)
+    {
         $_SESSION[$key] = $value;
     }
 
-    public static function get($key) {
+    public static function get($key)
+    {
         if (isset($_SESSION[$key])) {
             return $_SESSION[$key];
         } else {
@@ -25,11 +32,13 @@ class Session {
         }
     }
 
-    public static function destroy() {
+    public static function destroy()
+    {
         session_destroy();
     }
 
-    public static function recordSessionStart($userId, $sessionToken, $ipAddress, $userAgent) {
+    public static function recordSessionStart($userId, $sessionToken, $ipAddress, $userAgent)
+    {
         $db = new Database();
         $conn = $db->connect();
 
@@ -39,7 +48,8 @@ class Session {
         $stmt->close();
     }
 
-    public static function recordSessionEnd($userId, $sessionToken) {
+    public static function recordSessionEnd($userId, $sessionToken)
+    {
         $db = new Database();
         $conn = $db->connect();
 
