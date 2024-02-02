@@ -31,7 +31,7 @@ INSERT INTO role (code, name, description) VALUES ('BOD', 'Bodega', 'Desceripci√
 INSERT INTO role (code, name, description) VALUES ('VEN', 'Vendedor', 'Descripci√≥n del rol de vendedor');
 
 -- Admin user
-INSERT INTO user (username, password, email, role_id) VALUES ('admin', 'admin', 'joshuexd1@gmail.com', 1);
+INSERT INTO user (username, password, email, role_id) VALUES ('admin', '$2y$10$r6XbNRPs5ADljGAFanYFYuPKVioUAQ0oXImuq5Ar0LKY5OzxFHi0C', 'joshuexd1@gmail.com', 1);
 
 CREATE TABLE session_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
