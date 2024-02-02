@@ -42,10 +42,20 @@ class Session
         $db = new Database();
         $conn = $db->connect();
 
-        $stmt = $conn->prepare("INSERT INTO session_logs (user_id, ip_address, user_agent, session_token) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("isss", $userId, $ipAddress, $userAgent, $sessionToken);
-        $stmt->execute();
-        $stmt->close();
+        // Verificar si ya existe un registro de sesión activo para este usuario
+        $checkStmt = $conn->prepare("SELECT id FROM session_logs WHERE user_id = ? AND session_end IS NULL");
+        $checkStmt->bind_param("i", $userId);
+        $checkStmt->execute();
+        $result = $checkStmt->get_result();
+        $checkStmt->close();
+
+        // Si no existe un registro activo, insertamos uno nuevo
+        if ($result->num_rows === 0) {
+            $stmt = $conn->prepare("INSERT INTO session_logs (user_id, ip_address, user_agent, session_token) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("isss", $userId, $ipAddress, $userAgent, $sessionToken);
+            $stmt->execute();
+            $stmt->close();
+        }
     }
 
     public static function recordSessionEnd($userId, $sessionToken)
