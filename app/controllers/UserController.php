@@ -3,12 +3,28 @@
 namespace App\Controllers;
 
 use App\Models\User;
+use App\Config\Database;
 
 class UserController
 {
     public function index()
     {
         // Mostrar una lista de usuarios
+        $database = new Database();
+        $users = $database->dbQuery('SELECT * FROM users');
+
+        if ($users) {
+            return json_encode([
+                'success' => true,
+                'users' => $users
+            ]);
+        } else {
+            // Manejo del error en caso de que no se encuentren usuarios
+            return json_encode([
+                'success' => false,
+                'message' => 'No se encontraron usuarios.'
+            ]);
+        }
     }
 
     public function show($id)
@@ -16,7 +32,19 @@ class UserController
         // Mostrar un usuario específico
         $user = new User();
         $user = $user->find($id);
-        // Cargar vista con datos de usuario
+        // Cargar data en formato json
+        if ($user->id) {
+            return json_encode([
+                'success' => true,
+                'user' => $user
+            ]);
+        } else {
+            // Manejo del error en caso de que el usuario no se encuentre
+            return json_encode([
+                'success' => false,
+                'message' => 'El usuario no se encuentra.'
+            ]);
+        }
     }
 
     public function create($userData)
@@ -29,7 +57,20 @@ class UserController
             }
         }
         $user->save();
-        // Redirigir o mostrar resultado
+
+        if ($user->id) {
+            return json_encode([
+                'success' => true,
+                'message' => 'Usuario creado con éxito.',
+                'user_id' => $user->id
+            ]);
+        } else {
+            // Manejo del error en caso de que no se haya creado el usuario
+            return json_encode([
+                'success' => false,
+                'message' => 'No se pudo crear el usuario.'
+            ]);
+        }
     }
 
     public function update($id, $userData)
@@ -43,7 +84,19 @@ class UserController
             }
         }
         $user->save();
-        // Redirigir o mostrar resultado
+
+        if ($user->id) {
+            return json_encode([
+                'success' => true,
+                'message' => 'Usuario actualizado con éxito.'
+            ]);
+        } else {
+            // Manejo del error en caso de que no se haya actualizado el usuario
+            return json_encode([
+                'success' => false,
+                'message' => 'No se pudo actualizar el usuario.'
+            ]);
+        }
     }
 
     public function delete($id)
@@ -55,10 +108,16 @@ class UserController
         if ($userFound->id) {
             $user->softDelete();
             // Aquí puedes redirigir al usuario o mostrar un mensaje de éxito
-            echo "El usuario con ID $id ha sido desactivado exitosamente.";
+            return json_encode([
+                'success' => true,
+                'message' => 'Usuario eliminado con éxito.'
+            ]);
         } else {
             // Manejo del error en caso de que el usuario no se encuentre
-            echo "El usuario con ID $id no se encuentra.";
+            return json_encode([
+                'success' => false,
+                'message' => 'El usuario no se encuentra.'
+            ]);
         }
     }
 }

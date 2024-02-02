@@ -3,3 +3,4 @@
 <script src="../../src/assets/alpine/alpine.min.js"></script>
 <script src="../../src/assets/sweetalert/sweetalert2@11.js"></script>
 <script src="../../src/assets/moment/moment.min.js"></script>
+<script src="script.js"></script>

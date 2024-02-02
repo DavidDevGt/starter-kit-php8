@@ -11,7 +11,7 @@ $(document).ready(function () {
         icon: "error",
         title: "Campos vacíos",
         text: "Ingresa tu nombre de usuario",
-        timer: 1500,
+        timer: 1300,
         showConfirmButton: false,
       });
       return;
@@ -21,7 +21,7 @@ $(document).ready(function () {
         icon: "error",
         title: "Campos vacíos",
         text: "Ingresa tu contraseña",
-        timer: 1500,
+        timer: 1300,
         showConfirmButton: false,
       });
       return;

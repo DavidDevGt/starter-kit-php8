@@ -52,6 +52,7 @@ session_destroy();
     </div>
 
     <script src="../src/assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- Aqui no usare alpine, eso es exclusivo de los modulos, uso jquery por fines personales, hago todo mas rapido ahi... -->
     <script src="../src/assets/jquery/jquery-3.7.1.min.js"></script>
     <script src="../src/assets/sweetalert/sweetalert2@11.js"></script>
     <script src="index.js"></script>

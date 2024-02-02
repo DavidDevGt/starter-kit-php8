@@ -30,7 +30,19 @@ INSERT INTO role (code, name, description) VALUES ('OFI', 'Oficina', 'Descripci�
 INSERT INTO role (code, name, description) VALUES ('BOD', 'Bodega', 'Desceripción del rol de bodega');
 INSERT INTO role (code, name, description) VALUES ('VEN', 'Vendedor', 'Descripción del rol de vendedor');
 
+-- Admin user
 INSERT INTO user (username, password, email, role_id) VALUES ('admin', 'admin', 'joshuexd1@gmail.com', 1);
+
+CREATE TABLE session_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    session_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    session_end TIMESTAMP NULL,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    session_token VARCHAR(255),
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);
 
 CREATE TABLE module (
     id INT AUTO_INCREMENT PRIMARY KEY,

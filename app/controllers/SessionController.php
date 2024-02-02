@@ -20,6 +20,15 @@ class SessionController
             // Si las credenciales son correctas, establecer datos de sesión
             Session::set('user_id', $authenticatedUser->id);
             Session::set('username', $authenticatedUser->username);
+            
+            // Registrar el inicio de sesión
+            $sessionToken = bin2hex(random_bytes(32)); // Genera un token seguro
+            $ipAddress = $_SERVER['REMOTE_ADDR']; // IP del cliente
+            $userAgent = $_SERVER['HTTP_USER_AGENT']; // Agente de usuario del cliente
+
+            Session::set('session_token', $sessionToken);
+            Session::recordSessionStart($authenticatedUser->id, $sessionToken, $ipAddress, $userAgent);
+
             // Devolver true/éxito
             return true;
         } else {
@@ -44,6 +53,10 @@ class SessionController
     public function logout()
     {
         // Cerrar la sesión del usuario
+        $userId = Session::get('user_id');
+        $sessionToken = Session::get('session_token');
+
+        Session::recordSessionEnd($userId, $sessionToken);
         Session::destroy();
         // Devolver true/éxito
         return true;
