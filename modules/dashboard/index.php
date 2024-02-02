@@ -69,8 +69,8 @@ require_once __DIR__ . '/../../components/header/extend_libraries.php';
                 <div class="card h-100 border-0 shadow bg-danger">
                     <div class="card-body">
                         <i class="las la-truck-loading la-3x text-white"></i>
-                        <h5 class="card-title mt-2 text-white">Pedidos Pendientes</h5>
-                        <p class="card-text h3 text-white">45</p>
+                        <h5 class="card-title mt-2 text-white">Facturas sin Pagar</h5>
+                        <p class="card-text h3 text-white">5</p>
                     </div>
                 </div>
             </div>
