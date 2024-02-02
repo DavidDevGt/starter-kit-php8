@@ -3,6 +3,12 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 // Puedes agregar lógica del controlador aquí o incluir un archivo que la contenga
+use App\Controllers\SessionController;
+
+$sessionController = new SessionController();
+if (!$sessionController->verify()) {
+    die("No estás autenticado. Por favor, inicia sesión para ver este contenido.");
+}
 
 // Incluir header
 require_once __DIR__ . '/../../components/header/default.php';

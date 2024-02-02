@@ -1,27 +1,32 @@
 <?php
 require_once __DIR__ . '/../../lib/vendor/autoload.php';
 
-use App\Controllers\UserController;
+use App\Config\Database;
 
-$controller = new UserController();
+// Funciones mejoradas para realizar consultas y obtener resultados
+function dbQueryFetchAll($query)
+{
+    $database = new Database();
+    $result = $database->dbQuery($query);
+    return $database->dbFetchAll($result);
+}
+
+function dbQueryFetchAssoc($query)
+{
+    $database = new Database();
+    $result = $database->dbQuery($query);
+    return $database->dbFetchAssoc($result);
+}
 
 // Manejo de las peticiones HTTP
 switch ($_SERVER['REQUEST_METHOD']) {
     case 'GET':
         $action = $_GET['action'] ?? ''; // Acción a realizar
-        $id = $_GET['id'] ?? ''; // ID del usuario a obtener
+        $id = $_GET['id'] ?? ''; // ID del registro a obtener
         $response = ''; // Respuesta a la petición
 
         switch ($action) {
-            case 'show':
-                // Mostrar un usuario específico
-                $response = $controller->show($id);
-                break;
-            case 'index':
-                // Mostrar lista de usuarios
-                $response = $controller->index();
-                break;
-            // Agrega más casos GET según sea necesario
+                // Agrega más casos GET según sea necesario
             default:
                 $response = json_encode(['success' => false, 'message' => 'Acción GET no reconocida.']);
                 break;
@@ -33,27 +38,21 @@ switch ($_SERVER['REQUEST_METHOD']) {
         $data = json_decode(file_get_contents('php://input'), true); // Datos de la petición
 
         switch ($action) {
-            case 'create':
-                // Crear un nuevo usuario
-                $response = $controller->create($data);
-                break;
-            // Agrega más casos POST según sea necesario
+                // Aquí puedes añadir casos para diferentes acciones POST
+
             default:
-                $response = json_encode(['success' => false, 'message' => 'Acción POST no reconocida.']);
+                echo json_encode(['success' => false, 'message' => 'Acción POST no reconocida.']);
                 break;
         }
         break;
 
     case 'PUT':
         $action = $_GET['action'] ?? ''; // Acción a realizar
-        $data = json_decode(file_get_contents('php://input'), true); // Datos de la petición para actualizar
+        $id = $_GET['id'] ?? ''; // ID del registro a actualizar
+        $response = ''; // Respuesta a la petición
 
         switch ($action) {
-            case 'update':
-                // Actualizar un usuario
-                $response = $controller->update($data['id'], $data);
-                break;
-            // Agrega más casos PUT según sea necesario
+                // Agrega más casos PUT según sea necesario
             default:
                 $response = json_encode(['success' => false, 'message' => 'Acción PUT no reconocida.']);
                 break;
@@ -62,14 +61,11 @@ switch ($_SERVER['REQUEST_METHOD']) {
 
     case 'DELETE':
         $action = $_GET['action'] ?? ''; // Acción a realizar
-        parse_str(file_get_contents('php://input'), $data); // Datos de la petición para eliminar
+        $id = $_GET['id'] ?? ''; // ID del registro a eliminar
+        $response = ''; // Respuesta a la petición
 
         switch ($action) {
-            case 'delete':
-                // Eliminar un usuario
-                $response = $controller->delete($data['id']);
-                break;
-            // Agrega más casos DELETE según sea necesario
+                // Agrega más casos DELETE según sea necesario
             default:
                 $response = json_encode(['success' => false, 'message' => 'Acción DELETE no reconocida.']);
                 break;
@@ -78,9 +74,8 @@ switch ($_SERVER['REQUEST_METHOD']) {
 
     default:
         http_response_code(405); // Método no permitido
-        $response = json_encode(['success' => false, 'message' => 'Método HTTP no permitido.']);
+        echo json_encode(['success' => false, 'message' => 'Método HTTP no permitido.']);
         break;
 }
 
-header('Content-Type: application/json');
-echo $response;
+exit;
