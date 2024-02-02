@@ -14,11 +14,22 @@ require_once __DIR__ . '/../../components/header/default.php';
     <?php include("../../components/menu/component.php"); ?>
 
     <!-- --------------------- FIN MENU DE LA PAGINA --------------------- -->
+    
+    <div>
+        <div class="row mt-3 m-4">
+            <div class="col-3 mt-2 pt-3">
+                <!-- Breadcrumb deberia ir aca -->
+            </div>
+            <div class="col-6 mt-2 pt-3 text-center"></div>
+            <div class="col-3 mt-2 pt-3 text-end">
+                <!-- Area para botones en la parte de arriba -->
+            </div>
+        </div>
+    </div>
 
     <!-- Aquí va el contenido específico del módulo -->
-    <div class="fluid-container">
-        <!-- Contenido ... -->
-        <h1 class="text-center mt-5">Bienvenido</h1>
+    <div class="p-4 m-4 bg-white rounded">
+        <h1 class="text-center mt-3">Bienvenido</h1>
     </div>
 
 </body>
