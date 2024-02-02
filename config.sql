@@ -1,6 +1,6 @@
-CREATE DATABASE IF NOT EXISTS test_db;
+CREATE DATABASE IF NOT EXISTS starter_kit_php;
 
-USE test_db;
+USE starter_kit_php;
 
 CREATE TABLE IF NOT EXISTS user (
   id INT PRIMARY KEY AUTO_INCREMENT,
@@ -46,7 +46,7 @@ CREATE TABLE session_logs (
 
 CREATE TABLE module (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    order INT NOT NULL,
+    position INT NOT NULL,
     name VARCHAR(255) NOT NULL UNIQUE,
     primary_module BOOLEAN NOT NULL, -- TRUE: primary, FALSE: secondary
     father_module_id INT NOT NULL DEFAULT 0, -- 0: primary module, "father_module_id": secondary module
@@ -56,14 +56,14 @@ CREATE TABLE module (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (1, 'Clientes', TRUE, 0, '/modules/clientes/index.php');
-INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (2, 'Productos', TRUE, 0, '/modules/productos/index.php');
-INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (3, 'Inventario', TRUE, 0, '/modules/inventario/index.php');
-INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (4, 'Pedidos', TRUE, 0, '/modules/pedidos/index.php');
-INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (5, 'Facturacion', TRUE, 0, '/modules/facturacion/index.php');
-INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (6, 'Finanzas', TRUE, 0, '/modules/finanzas/index.php');
-INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (7, 'Reportes', TRUE, 0, '/modules/reportes/index.php');
-INSERT INTO module (order, name, primary_module, father_module_id, route) VALUES (8, 'Sistemas', TRUE, 0, '/modules/sistemas/index.php');
+INSERT INTO module (position, name, primary_module, father_module_id, route) VALUES (1, 'Clientes', TRUE, 0, '/modules/clientes/index.php');
+INSERT INTO module (position, name, primary_module, father_module_id, route) VALUES (2, 'Productos', TRUE, 0, '/modules/productos/index.php');
+INSERT INTO module (position, name, primary_module, father_module_id, route) VALUES (3, 'Inventario', TRUE, 0, '/modules/inventario/index.php');
+INSERT INTO module (position, name, primary_module, father_module_id, route) VALUES (4, 'Pedidos', TRUE, 0, '/modules/pedidos/index.php');
+INSERT INTO module (position, name, primary_module, father_module_id, route) VALUES (5, 'Facturacion', TRUE, 0, '/modules/facturacion/index.php');
+INSERT INTO module (position, name, primary_module, father_module_id, route) VALUES (6, 'Finanzas', TRUE, 0, '/modules/finanzas/index.php');
+INSERT INTO module (position, name, primary_module, father_module_id, route) VALUES (7, 'Reportes', TRUE, 0, '/modules/reportes/index.php');
+INSERT INTO module (position, name, primary_module, father_module_id, route) VALUES (8, 'Sistemas', TRUE, 0, '/modules/sistemas/index.php');
 
 CREATE TABLE permission (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -129,8 +129,8 @@ CREATE TABLE company (
 
 CREATE TABLE department (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    code VARCHAR (10) NOT UNIQUE,
-    name VARCHAR (255) NOT UNIQUE,
+    code VARCHAR (10) NOT NULL UNIQUE,
+    name VARCHAR (255) NOT NULL UNIQUE,
     country_id INT NOT NULL DEFAULT 1, -- 1 = Guatemala
     active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -140,8 +140,8 @@ CREATE TABLE department (
 CREATE TABLE municipality (
     id INT AUTO_INCREMENT PRIMARY KEY,
     department_id INT NOT NULL,
-    code VARCHAR (10) NOT UNIQUE,
-    name VARCHAR (255) NOT UNIQUE,
+    code VARCHAR (10) NOT NULL UNIQUE,
+    name VARCHAR (255) NOT NULL UNIQUE,
     active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
