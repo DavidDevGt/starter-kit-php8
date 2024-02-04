@@ -29,6 +29,8 @@ require_once __DIR__ . '/../../components/header/default.php';
             <div class="col-6 mt-2 pt-3 text-center"></div>
             <div class="col-3 mt-2 pt-3 text-end">
                 <!-- Area para botones en la parte de arriba -->
+                <button class="btn btn-primary" id="crearModulo"><i class="bi bi-plus-circle"></i></button>
+                
             </div>
         </div>
     </div>
@@ -37,7 +39,6 @@ require_once __DIR__ . '/../../components/header/default.php';
     <div class="p-4 m-4 bg-white rounded">
         <h1 class="text-center mt-3">Bienvenido</h1>
     </div>
-
 </body>
 
 <?php
