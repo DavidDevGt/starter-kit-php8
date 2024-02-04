@@ -13,3 +13,115 @@
         </div>
     </div>
 </nav>
+
+<style>
+    .nav-item,
+    .nav-link {
+        font-size: 1.25rem;
+        margin-left: 10px;
+    }
+
+    .nav-link::before {
+        content: " ";
+        display: block;
+        width: 0;
+        height: 2px;
+        background-color: #fff;
+        transition: width 0.3s;
+    }
+    
+    .nav-link:hover {
+        text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        /* Ajusta a tu preferencia */
+    }
+</style>
+
+<script>
+    // El document ready pero en vanilla
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarMenu();
+    });
+
+    // const crearMenu = (data) => {}
+
+    // No tocar esta función
+    function getBaseURL() {
+        let pathArray = window.location.pathname.split('/');
+        // Elimina el elemento vacío al final si existe
+        if (pathArray[pathArray.length - 1] === '') {
+            pathArray.pop();
+        }
+        if (pathArray[pathArray.length - 1].includes('.')) {
+            pathArray.pop();
+        }
+        // Encuentra la posición donde se encuentra el nombre del proyecto y reconstruye la base URL
+        let projectIndex = pathArray.indexOf('starter-kit-php8');
+        if (projectIndex !== -1) {
+            // En desarrollo, incluye el nombre del proyecto
+            return window.location.origin + pathArray.slice(0, projectIndex + 1).join('/');
+        } else {
+            // En producción, asume que el dominio apunta al directorio raíz del proyecto
+            return window.location.origin + '/';
+        }
+    }
+
+
+    function cargarMenu() {
+        fetch('../../components/menu/menu-ajax.php')
+            .then(response => response.json())
+            .then(data => {
+                crearMenu(data);
+            })
+            .catch(error => console.error('Error al cargar el menu:', error));
+    }
+
+    function crearMenu(modulos) {
+        const baseUrl = getBaseURL(); // Obtiene la base URL de la aplicación
+        const navbarArea = document.getElementById('navbar_area');
+
+        modulos.forEach(modulo => {
+            if (modulo.primary_module === "1") { // Es un módulo padre
+                const li = document.createElement('li');
+                li.className = 'nav-item dropdown';
+
+                const a = document.createElement('a');
+                a.className = 'nav-link dropdown-toggle';
+                a.href = '#';
+                a.id = `dropdown-${modulo.id}`;
+                a.role = 'button';
+                a.dataset.bsToggle = 'dropdown';
+                a.setAttribute('aria-expanded', 'false');
+                a.textContent = modulo.name;
+
+                const ul = document.createElement('ul');
+                ul.className = 'dropdown-menu';
+                ul.setAttribute('aria-labelledby', `dropdown-${modulo.id}`);
+
+                // Agregar hijos si los tiene
+                const hijos = modulos.filter(m => m.father_module_id === modulo.id);
+                if (hijos.length > 0) {
+                    hijos.forEach(hijo => {
+                        const liHijo = document.createElement('li');
+                        const aHijo = document.createElement('a');
+                        aHijo.className = 'dropdown-item';
+                        aHijo.href = baseUrl + hijo.route; // Aquí se construye la URL completa
+                        aHijo.textContent = hijo.name;
+                        liHijo.appendChild(aHijo);
+                        ul.appendChild(liHijo);
+                    });
+                } else {
+                    const liHijo = document.createElement('li');
+                    const aHijo = document.createElement('a');
+                    aHijo.className = 'dropdown-item';
+                    aHijo.textContent = 'Sin resultados';
+                    liHijo.appendChild(aHijo);
+                    ul.appendChild(liHijo);
+                }
+
+                li.appendChild(a);
+                li.appendChild(ul);
+                navbarArea.appendChild(li);
+            }
+        });
+    }
+</script>

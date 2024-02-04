@@ -10,6 +10,6 @@
 <link rel="stylesheet" href="../../src/assets/animate/animate.min.css">
 <style>
     * {
-        font-family: Poppins-Regular, sans-serif;
+        font-family: Poppins-Regular, sans-serif !important;
     }
 </style>
