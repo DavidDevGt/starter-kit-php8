@@ -59,7 +59,7 @@ a:focus {
 
 a:hover {
   text-decoration: none;
-  color: #57b846;
+  color: #0f2caa;
 }
 
 /*---------------------------------------------*/
@@ -406,7 +406,7 @@ input.input100 {
 }
 
 .input-checkbox100:checked + .label-checkbox100::before {
-  color: #57b846;
+  color: #0f2caa;
 }
 
 /*------------------------------------------------------------------
