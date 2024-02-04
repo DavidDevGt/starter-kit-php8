@@ -19,8 +19,11 @@
 <style>
     .nav-item,
     .nav-link {
-        font-size: 1.25rem;
-        margin-left: 10px;
+        font-size: 1rem;
+    }
+
+    .dropdown-item {
+        font-size: 0.95rem;
     }
 
     .nav-link::before {
@@ -86,49 +89,51 @@
         const baseUrl = getBaseURL(); // Obtiene la base URL de la aplicación
         const navbarArea = document.getElementById('navbar_area');
 
-        modulos.forEach(modulo => {
-            if (modulo.primary_module === "1") { // Es un módulo padre
-                const li = document.createElement('li');
-                li.className = 'nav-item dropdown';
+        // Filtrar módulos principales y ordenarlos
+        const modulosPrincipales = modulos.filter(modulo => modulo.primary_module === "1");
 
-                const a = document.createElement('a');
-                a.className = 'nav-link dropdown-toggle';
-                a.href = '#';
-                a.id = `dropdown-${modulo.id}`;
-                a.role = 'button';
-                a.dataset.bsToggle = 'dropdown';
-                a.setAttribute('aria-expanded', 'false');
-                a.textContent = modulo.name;
+        modulosPrincipales.forEach(modulo => {
+            const li = document.createElement('li');
+            li.className = 'nav-item dropdown';
 
-                const ul = document.createElement('ul');
-                ul.className = 'dropdown-menu';
-                ul.setAttribute('aria-labelledby', `dropdown-${modulo.id}`);
+            const a = document.createElement('a');
+            a.className = 'nav-link dropdown-toggle';
+            a.href = '#';
+            a.id = `dropdown-${modulo.id}`;
+            a.role = 'button';
+            a.dataset.bsToggle = 'dropdown';
+            a.setAttribute('aria-expanded', 'false');
+            a.textContent = modulo.name;
 
-                // Agregar hijos si los tiene
-                const hijos = modulos.filter(m => m.father_module_id === modulo.id);
-                if (hijos.length > 0) {
-                    hijos.forEach(hijo => {
-                        const liHijo = document.createElement('li');
-                        const aHijo = document.createElement('a');
-                        aHijo.className = 'dropdown-item';
-                        aHijo.href = baseUrl + hijo.route; // Aquí se construye la URL completa
-                        aHijo.textContent = hijo.name;
-                        liHijo.appendChild(aHijo);
-                        ul.appendChild(liHijo);
-                    });
-                } else {
-                    const liHijo = document.createElement('li');
-                    const aHijo = document.createElement('a');
-                    aHijo.className = 'dropdown-item';
-                    aHijo.textContent = 'Sin resultados';
-                    liHijo.appendChild(aHijo);
-                    ul.appendChild(liHijo);
-                }
+            const ul = document.createElement('ul');
+            ul.className = 'dropdown-menu';
+            ul.setAttribute('aria-labelledby', `dropdown-${modulo.id}`);
 
-                li.appendChild(a);
-                li.appendChild(ul);
-                navbarArea.appendChild(li);
+            // Filtrar y ordenar módulos hijos
+            const hijos = modulos.filter(m => m.father_module_id === modulo.id).sort((a, b) => a.position - b.position);
+
+            hijos.forEach(hijo => {
+                const liHijo = document.createElement('li');
+                const aHijo = document.createElement('a');
+                aHijo.className = 'dropdown-item';
+                aHijo.href = baseUrl + hijo.route; // Aquí se construye la URL completa
+                aHijo.textContent = hijo.name;
+                liHijo.appendChild(aHijo);
+                ul.appendChild(liHijo);
+            });
+
+            if (hijos.length === 0) {
+                const liHijo = document.createElement('li');
+                const aHijo = document.createElement('a');
+                aHijo.className = 'dropdown-item';
+                aHijo.textContent = 'Sin resultados';
+                liHijo.appendChild(aHijo);
+                ul.appendChild(liHijo);
             }
+
+            li.appendChild(a);
+            li.appendChild(ul);
+            navbarArea.appendChild(li);
         });
     }
 </script>
