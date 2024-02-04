@@ -1,94 +1,62 @@
 <?php
 require_once __DIR__ . '/../../vendor/autoload.php';
 
-use App\Config\Database;
+use App\Controllers\ModuleController;
 
-/* Esto es para que solo usuarios autenticados puedan acceder a este archivo:
+header('Content-Type: application/json');
 
-use App\Controllers\SessionController;
+$moduleController = new ModuleController();
 
-$sessionController = new SessionController();
-if (!$sessionController->verify()) {
-    header('HTTP/1.0 401 Unauthorized');
-    echo json_encode(['success' => false, 'message' => 'No autenticado.']);
-    exit;
+try {
+    switch ($_SERVER['REQUEST_METHOD']) {
+        case 'GET':
+            // Ver todos los módulos o un módulo específico por id
+            if (isset($_GET['id'])) {
+                $module = $moduleController->show($_GET['id']);
+                echo json_encode(['success' => true, 'data' => $module]);
+            } else {
+                $modules = $moduleController->index();
+                echo json_encode(['success' => true, 'data' => $modules]);
+            }
+            break;
+
+        case 'POST':
+            // Crear un nuevo módulo
+            $data = json_decode(file_get_contents('php://input'), true);
+            $moduleController->store($data);
+            echo json_encode(['success' => true, 'message' => 'Módulo creado exitosamente.']);
+            break;
+
+        case 'PUT':
+            // Actualizar un módulo existente
+            parse_str(file_get_contents('php://input'), $data);
+            $id = isset($data['id']) ? $data['id'] : null;
+            if ($id) {
+                $moduleController->update($id, $data);
+                echo json_encode(['success' => true, 'message' => 'Módulo actualizado exitosamente.']);
+            } else {
+                throw new Exception('ID del módulo no especificado.');
+            }
+            break;
+
+        case 'DELETE':
+            // Eliminar un módulo (soft delete)
+            parse_str(file_get_contents('php://input'), $data);
+            $id = isset($data['id']) ? $data['id'] : null;
+            if ($id) {
+                $moduleController->delete($id);
+                echo json_encode(['success' => true, 'message' => 'Módulo eliminado exitosamente.']);
+            } else {
+                throw new Exception('ID del módulo no especificado.');
+            }
+            break;
+
+        default:
+            http_response_code(405); // Método no permitido
+            echo json_encode(['success' => false, 'message' => 'Método HTTP no permitido.']);
+            break;
+    }
+} catch (Exception $e) {
+    http_response_code(500); // Error interno del servidor
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
-
-*/
-
-// Funciones mejoradas para realizar consultas y obtener resultados
-function dbQueryFetchAll($query)
-{
-    $database = new Database();
-    $result = $database->dbQuery($query);
-    return $database->dbFetchAll($result);
-}
-
-function dbQueryFetchAssoc($query)
-{
-    $database = new Database();
-    $result = $database->dbQuery($query);
-    return $database->dbFetchAssoc($result);
-}
-
-// Manejo de las peticiones HTTP
-switch ($_SERVER['REQUEST_METHOD']) {
-    case 'GET':
-        $action = $_GET['action'] ?? ''; // Acción a realizar
-        $id = $_GET['id'] ?? ''; // ID del registro a obtener
-        $response = ''; // Respuesta a la petición
-
-        switch ($action) {
-                // Agrega más casos GET según sea necesario
-            default:
-                $response = json_encode(['success' => false, 'message' => 'Acción GET no reconocida.']);
-                break;
-        }
-        break;
-
-    case 'POST':
-        $action = $_POST['action'] ?? ''; // Acción a realizar
-        $data = json_decode(file_get_contents('php://input'), true); // Datos de la petición
-
-        switch ($action) {
-                // Aquí puedes añadir casos para diferentes acciones POST
-
-            default:
-                echo json_encode(['success' => false, 'message' => 'Acción POST no reconocida.']);
-                break;
-        }
-        break;
-
-    case 'PUT':
-        $action = $_GET['action'] ?? ''; // Acción a realizar
-        $id = $_GET['id'] ?? ''; // ID del registro a actualizar
-        $response = ''; // Respuesta a la petición
-
-        switch ($action) {
-                // Agrega más casos PUT según sea necesario
-            default:
-                $response = json_encode(['success' => false, 'message' => 'Acción PUT no reconocida.']);
-                break;
-        }
-        break;
-
-    case 'DELETE':
-        $action = $_GET['action'] ?? ''; // Acción a realizar
-        $id = $_GET['id'] ?? ''; // ID del registro a eliminar
-        $response = ''; // Respuesta a la petición
-
-        switch ($action) {
-                // Agrega más casos DELETE según sea necesario
-            default:
-                $response = json_encode(['success' => false, 'message' => 'Acción DELETE no reconocida.']);
-                break;
-        }
-        break;
-
-    default:
-        http_response_code(405); // Método no permitido
-        echo json_encode(['success' => false, 'message' => 'Método HTTP no permitido.']);
-        break;
-}
-
-exit;
