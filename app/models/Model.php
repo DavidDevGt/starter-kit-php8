@@ -75,6 +75,31 @@ abstract class Model
         }
     }
 
+    /**
+     * Recupera todos los registros de la tabla asociada al modelo.
+     *
+     * @return array Una lista de instancias del modelo con todos los registros de la tabla.
+     */
+    public function all()
+    {
+        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE active = TRUE");
+        $stmt->execute();
+        $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+        // Crear una lista para almacenar las instancias del modelo
+        $models = [];
+
+        // Rellenar cada modelo con los datos de la base de datos
+        foreach ($results as $result) {
+            $model = new static(); // Crear una nueva instancia del modelo concreto
+            $model->fill($result);
+            $models[] = $model;
+        }
+
+        return $models;
+    }
+
     public function delete()
     {
         if ($this->id) {
