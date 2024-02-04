@@ -8,8 +8,10 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0" id="navbar_area">
             </ul>
             <div role="search">
-                <button class="btn btn-danger" type="button">Cerrar Sesión</button>
+                <button class="btn btn-danger" type="button" onclick="logout()">Cerrar Sesión</button>
             </div>
+
+
         </div>
     </div>
 </nav>
@@ -29,7 +31,7 @@
         background-color: #fff;
         transition: width 0.3s;
     }
-    
+
     .nav-link:hover {
         text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
         /* Ajusta a tu preferencia */
@@ -47,20 +49,21 @@
     // No tocar esta función
     function getBaseURL() {
         let pathArray = window.location.pathname.split('/');
-        // Elimina el elemento vacío al final si existe
+        // Elimina el vacío al final y el archivo .php si existe
         if (pathArray[pathArray.length - 1] === '') {
             pathArray.pop();
         }
         if (pathArray[pathArray.length - 1].includes('.')) {
             pathArray.pop();
         }
-        // Encuentra la posición donde se encuentra el nombre del proyecto y reconstruye la base URL
+        // Encuentra el nombre del proyecto y reconstruye la base URL
         let projectIndex = pathArray.indexOf('starter-kit-php8');
         if (projectIndex !== -1) {
             // En desarrollo, incluye el nombre del proyecto
             return window.location.origin + pathArray.slice(0, projectIndex + 1).join('/');
         } else {
             // En producción, asume que el dominio apunta al directorio raíz del proyecto
+            //* REVISAR ESTO *//
             return window.location.origin + '/';
         }
     }
@@ -73,6 +76,10 @@
                 crearMenu(data);
             })
             .catch(error => console.error('Error al cargar el menu:', error));
+    }
+
+    function logout() {
+        window.location.href = '../../components/menu/logout.php'
     }
 
     function crearMenu(modulos) {

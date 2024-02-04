@@ -24,7 +24,7 @@ class SessionController
             // Si las credenciales son correctas, establecer datos de sesión
             Session::set('user_id', $authenticatedUser->id);
             Session::set('username', $authenticatedUser->username);
-            
+
             // Registrar el inicio de sesión
             $sessionToken = bin2hex(random_bytes(32)); // Genera un token seguro
             $ipAddress = $_SERVER['REMOTE_ADDR']; // IP del cliente
@@ -56,13 +56,19 @@ class SessionController
 
     public function logout()
     {
-        // Cerrar la sesión del usuario
+        Session::init(); // Asegurarse de que la sesión esté iniciada.
+    
         $userId = Session::get('user_id');
         $sessionToken = Session::get('session_token');
-
-        Session::recordSessionEnd($userId, $sessionToken);
-        Session::destroy();
-        // Devolver true/éxito
-        return true;
+    
+        if ($userId && $sessionToken) {
+            Session::recordSessionEnd($userId, $sessionToken);
+            Session::destroy();
+            return true;
+        } else {
+            error_log("Error al cerrar sesión: No se pudo obtener userId o sessionToken.");
+            return false;
+        }
     }
+    
 }

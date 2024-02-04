@@ -2,8 +2,15 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use App\Controllers\SessionController;
+
 session_start();
-session_destroy();
+
+if (isset($_SESSION['user_id'])) {
+    // Si hay una sesión activa, cerrarla antes de mostrar la página de inicio de sesión
+    $sessionController = new SessionController();
+    $sessionController->logout();
+}
 
 ?>
 

@@ -1,7 +1,4 @@
 <?php
-ini_set('log_errors', 1);
-ini_set('error_log', './errors.log');
-error_reporting(E_ALL);
 
 require_once __DIR__ . "/../vendor/autoload.php";
 
@@ -13,26 +10,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? null;
     $password = $_POST['password'] ?? null;
 
-    error_log("username: $username, password: $password");
-
     if (!$username || !$password) {
         http_response_code(400); // Bad Request
+        error_log("Faltan datos para el inicio de sesión: Usuario o contraseña no proporcionados.");
         echo json_encode(['success' => false, 'message' => 'Usuario y contraseña requeridos.']);
         exit;
     }
 
     $sessionController = new SessionController();
-
-    error_log("sessionController: " . json_encode($sessionController->login($username, $password)));
-
     $loginResult = $sessionController->login($username, $password);
-
-    error_log("loginResult: " . json_encode($loginResult));
 
     if ($loginResult) {
         echo json_encode(['success' => true, 'message' => 'Inicio de sesión exitoso.']);
     } else {
         http_response_code(401); // Unauthorized
+        error_log("Inicio de sesión fallido para usuario: $username");
         echo json_encode(['success' => false, 'message' => 'Usuario o contraseña incorrectos.']);
     }
 } else {

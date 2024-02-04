@@ -34,8 +34,11 @@ class Session
 
     public static function destroy()
     {
-        session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
     }
+    
 
     public static function recordSessionStart($userId, $sessionToken, $ipAddress, $userAgent)
     {
