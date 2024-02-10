@@ -1,4 +1,7 @@
 <?php
+// error_reporting(E_ALL);
+// ini_set('display_errors', 1);
+
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Controllers\ModuleController;
@@ -49,8 +52,8 @@ try {
 
         case 'DELETE':
             // Eliminar un módulo (soft delete)
-            parse_str(file_get_contents('php://input'), $data);
-            $id = isset($data['id']) ? $data['id'] : null;
+            $id = $_GET['id'] ?? null;  // Lo mande por GET pero el nombre del case es DELETE por fines practicos
+
             if ($id) {
                 $moduleController->delete($id);
                 echo json_encode(['success' => true, 'message' => 'Módulo eliminado exitosamente.']);

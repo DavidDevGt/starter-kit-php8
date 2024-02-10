@@ -7,7 +7,7 @@ use App\Config\Database;
 $db = new Database();
 $conn = $db->connect();
 
-$query = "SELECT * FROM module ORDER BY position ASC";
+$query = "SELECT * FROM module WHERE active = 1 ORDER BY position ASC";
 
 $result = $db->dbQuery($query);
 
