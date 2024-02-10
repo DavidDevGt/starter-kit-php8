@@ -2,18 +2,18 @@
 
 namespace App\Controllers;
 
-use App\Models\Role;
+use App\Models\Module;
 
 class ModuleController {
     public function index()
     {
-        $role = new Role();
+        $role = new Module();
         return $role->all();
     }
 
     public function store($data)
     {
-        $role = new Role();
+        $role = new Module();
         foreach ($data as $key => $value) {
             $role->$key = $value;
         }
@@ -22,7 +22,7 @@ class ModuleController {
 
     public function update($id, $data)
     {
-        $role = (new Role())->find($id);
+        $role = (new Module())->find($id);
         foreach ($data as $key => $value) {
             $role->$key = $value;
         }
@@ -31,13 +31,13 @@ class ModuleController {
 
     public function show($id)
     {
-        $role = (new Role())->find($id);
+        $role = (new Module())->find($id);
         return $role;
     }
 
     public function delete($id)
     {
-        $role = (new Role())->find($id);
+        $role = (new Module())->find($id);
         $role->softDelete();
     }
 }

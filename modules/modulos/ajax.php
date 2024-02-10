@@ -7,8 +7,16 @@ header('Content-Type: application/json');
 
 $moduleController = new ModuleController();
 
+$method = $_SERVER['REQUEST_METHOD'];
+if ($method == 'PUT' || $method == 'DELETE') {
+    parse_str(file_get_contents('php://input'), $_REQUEST);
+}
+
 try {
-    switch ($_SERVER['REQUEST_METHOD']) {
+    $action = $_REQUEST['action'] ?? null;
+    $id = $_REQUEST['id'] ?? null;
+
+    switch ($method) {
         case 'GET':
             // Ver todos los módulos o un módulo específico por id
             if (isset($_GET['id'])) {

@@ -8,6 +8,7 @@
 <link href="../../src/assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="../../src/assets/animate/animate.min.css">
+<script src="//unpkg.com/alpinejs" defer></script>
 <style>
     * {
         font-family: Poppins-Regular, sans-serif !important;
