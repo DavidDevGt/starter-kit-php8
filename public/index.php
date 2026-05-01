@@ -1,68 +1,18 @@
 <?php
 
-require_once __DIR__ . '/../vendor/autoload.php';
+declare(strict_types=1);
 
-use App\Controllers\SessionController;
+define('BASE_PATH', dirname(__DIR__));
 
-session_start();
+require BASE_PATH . '/vendor/autoload.php';
 
-if (isset($_SESSION['user_id'])) {
-    // Si hay una sesión activa, cerrarla antes de mostrar la página de inicio de sesión
-    $sessionController = new SessionController();
-    $sessionController->logout();
-}
+use App\Core\Application;
 
-?>
+$app = Application::create(BASE_PATH);
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="./src/favicon.png" type="image/x-icon">
-    <title>Starter Kit</title>
-    <link href="../src/assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../src/style-login.css">
-</head>
+$router = $app->router();
 
-<body>
-    <div class="limiter">
-        <div class="container-login100">
-            <div class="wrap-login100">
-                <div class="login100-form-title" style="background-image: url(../src//assets/images/bg-login.jpg);">
-                    <span class="login100-form-title-1">
-                        LOGIN
-                    </span>
-                </div>
+require BASE_PATH . '/routes/web.php';
+require BASE_PATH . '/routes/api.php';
 
-                <div class="login100-form mt-3">
-                    <div class="wrap-input100 mb-3">
-                        <span class="label-input100">Usuario</span>
-                        <input class="input100" type="text" id="username" placeholder="Ingrese su usuario">
-                        <span class="focus-input100"></span>
-                    </div>
-
-                    <div class="wrap-input100 mb-5">
-                        <span class="label-input100">Contraseña</span>
-                        <input class="input100" type="password" id="password" placeholder="Ingrese su contraseña">
-                        <span class="focus-input100"></span>
-                    </div>
-
-                    <div class="container-login100-form-btn">
-                        <button class="login100-form-btn" id="btn_login">
-                            Iniciar Sesión
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="../src/assets/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <!-- Aqui no usare alpine, eso es exclusivo de los modulos, uso jquery por fines personales, hago todo mas rapido ahi... -->
-    <script src="../src/assets/jquery/jquery-3.7.1.min.js"></script>
-    <script src="../src/assets/sweetalert/sweetalert2@11.js"></script>
-    <script src="index.js"></script>
-</body>
-
-</html>
+$app->run();

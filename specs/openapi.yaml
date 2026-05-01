@@ -1,0 +1,379 @@
+openapi: 3.1.0
+info:
+  title: SaaS Starter Kit API
+  version: 1.0.0
+  description: |
+    Multi-tenant SaaS API. All `/api/v1` endpoints require an active session
+    and a valid subscription. Responses follow the JSend spec (success/fail/error).
+
+servers:
+  - url: https://{tenant}.app.example.com/api/v1
+    variables:
+      tenant:
+        default: demo
+
+tags:
+  - name: Auth
+  - name: Users
+  - name: Tenant
+  - name: Billing
+  - name: Webhooks
+
+# ─── Security ────────────────────────────────────────────────────────────────
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: PHPSESSID
+    csrfHeader:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+
+  schemas:
+    # ── Generic responses ────────────────────────────────────────────────────
+    Success:
+      type: object
+      required: [success]
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+
+    ValidationError:
+      type: object
+      required: [errors]
+      properties:
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+
+    # ── Domain schemas ───────────────────────────────────────────────────────
+    User:
+      type: object
+      properties:
+        id:          { type: integer, readOnly: true }
+        username:    { type: string, example: jdoe }
+        email:       { type: string, format: email }
+        role_id:     { type: integer, example: 2 }
+        company_id:  { type: integer, readOnly: true }
+        active:      { type: boolean, readOnly: true }
+        created_at:  { type: string, format: date-time, readOnly: true }
+
+    UserCreate:
+      type: object
+      required: [username, email, password, role_id]
+      properties:
+        username: { type: string, minLength: 3, maxLength: 50 }
+        email:    { type: string, format: email }
+        password: { type: string, minLength: 8, writeOnly: true }
+        role_id:  { type: integer }
+
+    UserUpdate:
+      type: object
+      properties:
+        username: { type: string, minLength: 3 }
+        email:    { type: string, format: email }
+        role_id:  { type: integer }
+        password: { type: string, minLength: 8, writeOnly: true }
+
+    Tenant:
+      type: object
+      properties:
+        id:                    { type: integer, readOnly: true }
+        code:                  { type: string, readOnly: true }
+        company_name:          { type: string }
+        company_nit:           { type: string }
+        company_email:         { type: string, format: email }
+        company_country_id:    { type: integer }
+        active:                { type: boolean, readOnly: true }
+        created_at:            { type: string, format: date-time, readOnly: true }
+
+    Registration:
+      type: object
+      required: [company_name, nit, email, username, password]
+      properties:
+        company_name: { type: string, minLength: 2, maxLength: 255 }
+        nit:          { type: string, minLength: 4, maxLength: 20 }
+        email:        { type: string, format: email }
+        username:     { type: string, minLength: 3, maxLength: 50 }
+        password:     { type: string, minLength: 8, writeOnly: true }
+        country_id:   { type: integer, default: 1 }
+
+    Subscription:
+      type: object
+      properties:
+        id:                   { type: integer, readOnly: true }
+        plan_code:            { type: string, enum: [free, starter, pro, enterprise] }
+        plan_name:            { type: string }
+        status:               { type: string, enum: [trial, active, past_due, cancelled] }
+        trial_ends_at:        { type: string, format: date-time, nullable: true }
+        current_period_end:   { type: string, format: date-time, nullable: true }
+        max_users:            { type: integer }
+        is_active:            { type: boolean }
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string, writeOnly: true }
+
+# ─── Paths ───────────────────────────────────────────────────────────────────
+paths:
+
+  # ── Auth ──────────────────────────────────────────────────────────────────
+  /login:
+    post:
+      tags: [Auth]
+      summary: Authenticate a user and start a session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - type: object
+                    properties:
+                      redirect: { type: string, example: /dashboard }
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ValidationError' }
+        '429':
+          description: Too many login attempts
+          headers:
+            Retry-After: { schema: { type: integer } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /logout:
+    post:
+      tags: [Auth]
+      summary: End the current session
+      security:
+        - sessionCookie: []
+          csrfHeader: []
+      responses:
+        '302':
+          description: Redirect to /login
+
+  /register:
+    post:
+      tags: [Auth]
+      summary: Register a new tenant + admin user (starts 14-day trial)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Registration' }
+      responses:
+        '201':
+          description: Tenant created, trial started
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - type: object
+                    properties:
+                      redirect: { type: string, example: /login }
+        '409':
+          description: NIT or company name already registered
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ValidationError' }
+
+  # ── Users ─────────────────────────────────────────────────────────────────
+  /api/v1/users:
+    get:
+      tags: [Users]
+      summary: List all users in the tenant
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: User list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/User' }
+        '401': { description: Unauthenticated }
+        '402': { description: Subscription inactive }
+    post:
+      tags: [Users]
+      summary: Create a user within the tenant
+      security:
+        - sessionCookie: []
+          csrfHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserCreate' }
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - type: object
+                    properties:
+                      id: { type: integer }
+        '422': { description: Validation error }
+        '402': { description: User limit reached for plan }
+
+  /api/v1/users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [Users]
+      summary: Get a single user
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/User' }
+        '404': { description: User not found }
+    put:
+      tags: [Users]
+      summary: Update a user
+      security:
+        - sessionCookie: []
+          csrfHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserUpdate' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Success' }
+        '404': { description: User not found }
+    delete:
+      tags: [Users]
+      summary: Soft-delete a user
+      security:
+        - sessionCookie: []
+          csrfHeader: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Success' }
+
+  # ── Tenant ────────────────────────────────────────────────────────────────
+  /api/v1/tenant:
+    get:
+      tags: [Tenant]
+      summary: Get current tenant profile and subscription
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/Tenant'
+                      - type: object
+                        properties:
+                          subscription: { $ref: '#/components/schemas/Subscription' }
+    patch:
+      tags: [Tenant]
+      summary: Update tenant profile
+      security:
+        - sessionCookie: []
+          csrfHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Tenant' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Success' }
+
+  # ── Billing ───────────────────────────────────────────────────────────────
+  /api/v1/billing/portal:
+    post:
+      tags: [Billing]
+      summary: Create a Stripe billing portal session URL
+      security:
+        - sessionCookie: []
+          csrfHeader: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: { type: string, format: uri }
+
+  # ── Webhooks ──────────────────────────────────────────────────────────────
+  /webhooks/stripe:
+    post:
+      tags: [Webhooks]
+      summary: Stripe event webhook (no auth — verified by Stripe-Signature header)
+      parameters:
+        - name: Stripe-Signature
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200': { description: Event processed }
+        '400': { description: Invalid signature }
