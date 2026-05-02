@@ -81,15 +81,26 @@ class TenantController
             return false;
         }
 
-        $parts     = [];
+        $parts = [];
         foreach (explode(',', $signature) as $part) {
             [$k, $v]   = explode('=', $part, 2);
             $parts[$k] = $v;
         }
 
-        $timestamp  = $parts['t']  ?? '';
-        $sigV1      = $parts['v1'] ?? '';
-        $computed   = hash_hmac('sha256', "{$timestamp}.{$payload}", $secret);
+        $timestamp = $parts['t']  ?? '';
+        $sigV1     = $parts['v1'] ?? '';
+
+        // Reject missing or non-numeric timestamp
+        if (!$timestamp || !ctype_digit($timestamp)) {
+            return false;
+        }
+
+        // Reject webhooks older than 5 minutes (Stripe recommendation) to prevent replay attacks
+        if (abs(time() - (int) $timestamp) > 300) {
+            return false;
+        }
+
+        $computed = hash_hmac('sha256', "{$timestamp}.{$payload}", $secret);
 
         return hash_equals($computed, $sigV1);
     }

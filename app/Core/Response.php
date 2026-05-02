@@ -25,19 +25,32 @@ class Response
 
     public static function redirect(string $url, int $status = 302): self
     {
+        // Only allow relative URLs to prevent open redirect
+        if (str_contains($url, '://') || str_starts_with($url, '//')) {
+            $url = '/';
+        }
         return new self(status: $status, headers: ['Location' => $url]);
     }
 
     public static function view(string $path, array $data = []): self
     {
-        if (!file_exists($path)) {
-            return self::serverError("View [{$path}] not found.");
+        $realPath = realpath($path);
+        $basePath = realpath(dirname(__DIR__, 2));
+
+        // Prevent path traversal: resolved path must be inside the application root
+        if ($realPath === false || $basePath === false || !str_starts_with($realPath, $basePath)) {
+            return self::serverError('View not found.');
         }
 
-        extract($data, EXTR_SKIP);
-        ob_start();
-        require $path;
-        return new self(body: ob_get_clean() ?: '');
+        // Render in an isolated closure to avoid polluting the class scope via extract()
+        $render = static function (string $__path, array $__data): string {
+            extract($__data, EXTR_SKIP);
+            ob_start();
+            require $__path;
+            return ob_get_clean() ?: '';
+        };
+
+        return new self(body: $render($realPath, $data));
     }
 
     public static function notFound(string $message = 'Not Found'): self
@@ -81,6 +94,9 @@ class Response
         http_response_code($this->status);
 
         foreach ($this->headers as $key => $value) {
+            // Strip CRLF and null bytes to prevent header injection
+            $key   = preg_replace('/[\r\n\0]/', '', $key)   ?? '';
+            $value = preg_replace('/[\r\n\0]/', '', $value) ?? '';
             header("{$key}: {$value}");
         }
 

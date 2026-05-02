@@ -1,2 +1,36 @@
-vendor
+vendor/
 .env
+.env.*.local
+.env.*.php
+
+# Logs
+storage/logs/
+*.log
+errors.log
+
+# Uploads & generated files
+storage/uploads/
+storage/cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Keys & secrets
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Build artifacts
+/public/build/
+/public/hot
+
+# PHP
+*.cache

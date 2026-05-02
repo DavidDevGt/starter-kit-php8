@@ -30,7 +30,9 @@ class Database
         $this->conn = new \mysqli($this->host, $this->username, $this->password, $this->db_name);
 
         if ($this->conn->connect_error) {
-            die('Error de conexión: ' . $this->conn->connect_error);
+            error_log('Database connection error: ' . $this->conn->connect_error);
+            http_response_code(500);
+            die('A database error occurred. Please contact support.');
         }
 
         return $this->conn;
