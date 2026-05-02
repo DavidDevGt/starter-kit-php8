@@ -43,10 +43,10 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: root
+          MYSQL_ROOT_PASSWORD: ${{ secrets.TEST_DB_ROOT_PASSWORD }}
           MYSQL_DATABASE: starter_kit_test
-          MYSQL_USER: test_user
-          MYSQL_PASSWORD: test_pass
+          MYSQL_USER: ${{ secrets.TEST_DB_USER }}
+          MYSQL_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
         ports:
           - 3306:3306
         options: >-
@@ -91,8 +91,8 @@ jobs:
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
           DB_NAME: starter_kit_test
-          DB_USER: test_user
-          DB_PASS: test_pass
+          DB_USER: ${{ secrets.TEST_DB_USER }}
+          DB_PASS: ${{ secrets.TEST_DB_PASSWORD }}
         run: php database/migrate.php run
 
       - name: Run tests
@@ -101,8 +101,8 @@ jobs:
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
           DB_NAME: starter_kit_test
-          DB_USER: test_user
-          DB_PASS: test_pass
+          DB_USER: ${{ secrets.TEST_DB_USER }}
+          DB_PASS: ${{ secrets.TEST_DB_PASSWORD }}
           REDIS_HOST: 127.0.0.1
           REDIS_PORT: 6379
         run: vendor/bin/phpunit --coverage-text

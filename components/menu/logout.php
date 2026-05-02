@@ -11,18 +11,11 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 $sessionController = new SessionController();
 $logoutResult = $sessionController->logout();
 
-$location = $_SERVER['HTTP_REFERER'];
-
-$deleteAfter = 'modules/';
-
-$changeModulesToPublic = 'public/';
-
-$location = substr($location, 0, strpos($location, $deleteAfter) + strlen($deleteAfter));
-
-$location = substr_replace($location, $changeModulesToPublic, strpos($location, $deleteAfter), strlen($deleteAfter));
+// Redirect to the login page — never use HTTP_REFERER for redirects (open redirect risk)
+$location = '/public/';
 
 if ($logoutResult) {
-    header("Location: $location");
+    header('Location: ' . $location);
     exit;
 } else {
     die('Error al cerrar sesión');

@@ -8,12 +8,12 @@ WORKDIR /app
 # Copy manifests first — layer cache is invalidated only when they change
 COPY composer.json composer.lock ./
 
-RUN composer install \
+RUN composer validate --no-check-publish && \
+    composer install \
         --no-dev \
         --no-scripts \
         --no-autoloader \
-        --prefer-dist \
-        --ignore-platform-reqs
+        --prefer-dist
 
 # Copy source and generate optimised autoloader
 COPY . .
@@ -77,7 +77,7 @@ COPY --chown=www-data:www-data . .
 # Writable dirs for logs / uploads; everything else read-only at runtime
 RUN mkdir -p storage/logs \
     && chown -R www-data:www-data storage \
-    && chmod -R 775 storage
+    && chmod -R 755 storage
 
 # ── Security: drop to non-root ────────────────────────────────────────────────
 USER www-data
