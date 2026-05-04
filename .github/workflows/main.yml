@@ -6,6 +6,15 @@ on:
   pull_request:
     branches: ["main"]
 
+# ── Shared CI-only DB credentials ────────────────────────────────────────────
+# Override these in GitHub → Settings → Secrets for extra isolation,
+# but the defaults below are safe for ephemeral CI containers.
+env:
+  CI_DB_NAME: starter_kit_test
+  CI_DB_USER: ${{ secrets.TEST_DB_USER || 'ci_user' }}
+  CI_DB_PASS: ${{ secrets.TEST_DB_PASSWORD || 'ci_secret_pass' }}
+  CI_DB_ROOT: ${{ secrets.TEST_DB_ROOT_PASSWORD || 'ci_root_pass' }}
+
 jobs:
   # ── Static analysis ──────────────────────────────────────────────────────────
   analyse:
@@ -31,6 +40,9 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
+      - name: Security audit
+        run: composer audit
+
       - name: Run PHPStan
         run: vendor/bin/phpstan analyse --no-progress
 
@@ -43,17 +55,18 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.TEST_DB_ROOT_PASSWORD }}
-          MYSQL_DATABASE: starter_kit_test
-          MYSQL_USER: ${{ secrets.TEST_DB_USER }}
-          MYSQL_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: ${{ env.CI_DB_ROOT }}
+          MYSQL_DATABASE: ${{ env.CI_DB_NAME }}
+          MYSQL_USER: ${{ env.CI_DB_USER }}
+          MYSQL_PASSWORD: ${{ env.CI_DB_PASS }}
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root --password=${{ env.CI_DB_ROOT }} --silent"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=10
+          --health-retries=15
+          --health-start-period=30s
 
       redis:
         image: redis:7-alpine
@@ -88,21 +101,23 @@ jobs:
       - name: Run migrations
         env:
           APP_ENV: testing
+          APP_KEY: ci-app-key-not-used-in-tests-00000
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
-          DB_NAME: starter_kit_test
-          DB_USER: ${{ secrets.TEST_DB_USER }}
-          DB_PASS: ${{ secrets.TEST_DB_PASSWORD }}
+          DB_NAME: ${{ env.CI_DB_NAME }}
+          DB_USER: ${{ env.CI_DB_USER }}
+          DB_PASS: ${{ env.CI_DB_PASS }}
         run: php database/migrate.php run
 
       - name: Run tests
         env:
           APP_ENV: testing
+          APP_KEY: ci-app-key-not-used-in-tests-00000
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
-          DB_NAME: starter_kit_test
-          DB_USER: ${{ secrets.TEST_DB_USER }}
-          DB_PASS: ${{ secrets.TEST_DB_PASSWORD }}
+          DB_NAME: ${{ env.CI_DB_NAME }}
+          DB_USER: ${{ env.CI_DB_USER }}
+          DB_PASS: ${{ env.CI_DB_PASS }}
           REDIS_HOST: 127.0.0.1
           REDIS_PORT: 6379
         run: vendor/bin/phpunit --coverage-text
