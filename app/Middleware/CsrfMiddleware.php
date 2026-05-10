@@ -53,6 +53,12 @@ class CsrfMiddleware implements MiddlewareInterface
             session_start();
         }
 
-        return hash_equals($_SESSION['csrf_token'] ?? '', $token);
+        // Explicit empty check prevents timing oracle: comparing against '' would
+        // reveal "no token stored" vs "wrong token" via response-time differences.
+        if (empty($_SESSION['csrf_token'])) {
+            return false;
+        }
+
+        return hash_equals($_SESSION['csrf_token'], $token);
     }
 }

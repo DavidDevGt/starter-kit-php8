@@ -3,18 +3,14 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Config\Database;
 
-/* Esto es para que solo usuarios autenticados puedan acceder a este archivo:
-
 use App\Controllers\SessionController;
 
 $sessionController = new SessionController();
 if (!$sessionController->verify()) {
-    header('HTTP/1.0 401 Unauthorized');
+    http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No autenticado.']);
     exit;
 }
-
-*/
 
 // Funciones mejoradas para realizar consultas y obtener resultados
 function dbQueryFetchAll($query)

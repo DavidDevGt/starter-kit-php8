@@ -2,8 +2,16 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Controllers\RoleController;
+use App\Controllers\SessionController;
 
 header('Content-Type: application/json');
+
+$sessionController = new SessionController();
+if (!$sessionController->verify()) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'message' => 'No autenticado.']);
+    exit;
+}
 
 $roleController = new RoleController();
 

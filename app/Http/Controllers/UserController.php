@@ -28,10 +28,12 @@ class UserController
 
     public function show(Request $request): Response
     {
-        $id   = (int) $request->getAttribute('id');
-        $user = $this->users->findById($id);
+        $id       = (int) $request->getAttribute('id');
+        $tenantId = TenantContext::id();
+        $user     = $this->users->findById($id);
 
-        if (!$user) {
+        // Defense-in-depth: verify tenant ownership even though the repository auto-scopes
+        if (!$user || (int) $user['company_id'] !== $tenantId) {
             return Response::notFound('User not found.');
         }
 
@@ -42,9 +44,9 @@ class UserController
     {
         $data   = $request->only('username', 'email', 'password', 'role_id');
         $errors = $this->validate($data, [
-            'username' => ['required'],
+            'username' => ['required', 'max:100'],
             'email'    => ['required', 'email'],
-            'password' => ['required', 'min:8'],
+            'password' => ['required', 'min:8', 'max:255'],
             'role_id'  => ['required'],
         ]);
 
@@ -52,7 +54,16 @@ class UserController
             return Response::validationError($errors);
         }
 
-        $tenantId = TenantContext::id();
+        $tenantId      = TenantContext::id();
+        $requesterId   = (int) $request->getAttribute('user_id');
+        $requester     = $this->users->findById($requesterId);
+        $requesterRole = (int) ($requester['role_id'] ?? PHP_INT_MAX);
+        $requestedRole = (int) $data['role_id'];
+
+        // Prevent privilege escalation: cannot assign a role equal to or higher than own
+        if ($requestedRole <= $requesterRole && $requesterRole !== 1) {
+            return Response::forbidden('Cannot assign a role with equal or higher privilege.');
+        }
 
         if (!$this->subscriptions->canAddUser($tenantId)) {
             return Response::json([
@@ -70,12 +81,23 @@ class UserController
 
     public function update(Request $request): Response
     {
-        $id   = (int) $request->getAttribute('id');
+        $id       = (int) $request->getAttribute('id');
+        $tenantId = TenantContext::id();
+        $user     = $this->users->findById($id);
+
+        if (!$user || (int) $user['company_id'] !== $tenantId) {
+            return Response::notFound('User not found.');
+        }
+
         $data = $request->only('username', 'email', 'role_id', 'password');
 
         if (isset($data['password'])) {
-            if (strlen($data['password']) < 8) {
+            // Use mb_strlen for correct multibyte character counting
+            if (mb_strlen((string) $data['password'], 'UTF-8') < 8) {
                 return Response::validationError(['password' => ['Minimum 8 characters.']]);
+            }
+            if (mb_strlen((string) $data['password'], 'UTF-8') > 255) {
+                return Response::validationError(['password' => ['Maximum 255 characters.']]);
             }
             $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]);
         }
@@ -91,12 +113,15 @@ class UserController
 
     public function destroy(Request $request): Response
     {
-        $id      = (int) $request->getAttribute('id');
-        $deleted = $this->users->delete($id);
+        $id       = (int) $request->getAttribute('id');
+        $tenantId = TenantContext::id();
+        $user     = $this->users->findById($id);
 
-        if (!$deleted) {
+        if (!$user || (int) $user['company_id'] !== $tenantId) {
             return Response::notFound('User not found.');
         }
+
+        $this->users->delete($id);
 
         return Response::json(['success' => true]);
     }
@@ -120,8 +145,15 @@ class UserController
 
                 if (str_starts_with($rule, 'min:')) {
                     $min = (int) substr($rule, 4);
-                    if (!empty($data[$field]) && strlen((string) $data[$field]) < $min) {
+                    if (!empty($data[$field]) && mb_strlen((string) $data[$field], 'UTF-8') < $min) {
                         $errors[$field][] = "The {$field} must be at least {$min} characters.";
+                    }
+                }
+
+                if (str_starts_with($rule, 'max:')) {
+                    $max = (int) substr($rule, 4);
+                    if (!empty($data[$field]) && mb_strlen((string) $data[$field], 'UTF-8') > $max) {
+                        $errors[$field][] = "The {$field} must not exceed {$max} characters.";
                     }
                 }
             }

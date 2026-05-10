@@ -40,16 +40,20 @@ class AuthService
 
         session_regenerate_id(true);
 
+        $token = $this->generateToken();
+        $lifetime = (int) ($_ENV['SESSION_LIFETIME'] ?? 120) * 60;
+
         $_SESSION['user_id']       = $user->id;
         $_SESSION['username']      = $user->username;
         $_SESSION['company_id']    = $user->tenantId;
-        $_SESSION['session_token'] = $this->generateToken();
+        $_SESSION['session_token'] = $token;
+        $_SESSION['_expires']      = time() + $lifetime;
 
         TenantContext::set($user->tenantId);
 
         $this->recordSessionStart(
             userId:   $user->id,
-            token:    $_SESSION['session_token'],
+            token:    $token,
             tenantId: $user->tenantId,
         );
     }
@@ -99,24 +103,27 @@ class AuthService
 
     private function recordSessionStart(int $userId, string $token, int $tenantId): void
     {
-        $ip = $_SERVER['REMOTE_ADDR']      ?? '';
-        $ua = $_SERVER['HTTP_USER_AGENT']  ?? '';
+        $ip        = $_SERVER['REMOTE_ADDR']     ?? '';
+        $ua        = $_SERVER['HTTP_USER_AGENT'] ?? '';
+        $tokenHash = hash('sha256', $token);
 
         $stmt = $this->users->connection()->prepare(
             'INSERT INTO session_logs (user_id, session_token, ip_address, user_agent, company_id)
              VALUES (?, ?, ?, ?, ?)'
         );
-        $stmt->bind_param('isssi', $userId, $token, $ip, $ua, $tenantId);
+        $stmt->bind_param('isssi', $userId, $tokenHash, $ip, $ua, $tenantId);
         $stmt->execute();
     }
 
     private function recordSessionEnd(int $userId, string $token): void
     {
+        $tokenHash = hash('sha256', $token);
+
         $stmt = $this->users->connection()->prepare(
             'UPDATE session_logs SET session_end = NOW()
              WHERE user_id = ? AND session_token = ?'
         );
-        $stmt->bind_param('is', $userId, $token);
+        $stmt->bind_param('is', $userId, $tokenHash);
         $stmt->execute();
     }
 }

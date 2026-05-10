@@ -71,9 +71,23 @@ class Request
 
     public function ip(): string
     {
-        return $this->server['HTTP_X_FORWARDED_FOR']
-            ?? $this->server['REMOTE_ADDR']
-            ?? '0.0.0.0';
+        // Only trust X-Forwarded-For when TRUSTED_PROXIES is explicitly configured,
+        // otherwise X-Forwarded-For is attacker-controlled and bypasses rate limiting.
+        $trustedProxies = array_filter(
+            explode(',', $_ENV['TRUSTED_PROXIES'] ?? ''),
+            static fn(string $s) => $s !== '',
+        );
+
+        $remoteAddr = $this->server['REMOTE_ADDR'] ?? '0.0.0.0';
+
+        if ($trustedProxies && in_array($remoteAddr, $trustedProxies, true)) {
+            $forwarded = trim(explode(',', $this->server['HTTP_X_FORWARDED_FOR'] ?? '')[0]);
+            if ($forwarded && filter_var($forwarded, FILTER_VALIDATE_IP)) {
+                return $forwarded;
+            }
+        }
+
+        return $remoteAddr;
     }
 
     public function userAgent(): string
@@ -93,6 +107,16 @@ class Request
         return str_starts_with($header, 'Bearer ')
             ? substr($header, 7)
             : null;
+    }
+
+    public function rawBody(): string
+    {
+        // Allow tests to inject a raw body via setAttribute('_raw_body', ...)
+        $override = $this->attributes['_raw_body'] ?? null;
+        if ($override !== null) {
+            return (string) $override;
+        }
+        return file_get_contents('php://input') ?: '';
     }
 
     public function setAttribute(string $key, mixed $value): self

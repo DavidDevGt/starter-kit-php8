@@ -3,7 +3,7 @@
 namespace App\Models;
 
 ini_set('log_errors', 1);
-ini_set('error_log', './errors.log');
+ini_set('error_log', dirname(__DIR__, 2) . '/storage/logs/errors.log');
 error_reporting(E_ALL);
 
 use App\Config\Database;
@@ -124,9 +124,10 @@ abstract class Model
     public function hasMany($relatedModel, $foreignKey, $localKey = 'id')
     {
         $relatedInstance = new $relatedModel();
-        $relatedTable = $relatedInstance->table;
+        $relatedTable = $this->sanitizeIdentifier($relatedInstance->table);
+        $foreignKey   = $this->sanitizeIdentifier($foreignKey);
 
-        $stmt = $this->conn->prepare("SELECT * FROM {$relatedTable} WHERE {$foreignKey} = ?");
+        $stmt = $this->conn->prepare("SELECT * FROM `{$relatedTable}` WHERE `{$foreignKey}` = ?");
         $stmt->bind_param('i', $this->$localKey);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -136,9 +137,10 @@ abstract class Model
     public function hasOne($relatedModel, $foreignKey, $localKey = 'id')
     {
         $relatedInstance = new $relatedModel();
-        $relatedTable = $relatedInstance->table;
+        $relatedTable = $this->sanitizeIdentifier($relatedInstance->table);
+        $foreignKey   = $this->sanitizeIdentifier($foreignKey);
 
-        $stmt = $this->conn->prepare("SELECT * FROM {$relatedTable} WHERE {$foreignKey} = ? LIMIT 1");
+        $stmt = $this->conn->prepare("SELECT * FROM `{$relatedTable}` WHERE `{$foreignKey}` = ? LIMIT 1");
         $stmt->bind_param('i', $this->$localKey);
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
@@ -148,11 +150,23 @@ abstract class Model
     public function belongsToMany($relatedModel, $pivotTable, $foreignKey, $relatedKey, $localKey = 'id')
     {
         $relatedInstance = new $relatedModel();
-        $relatedTable = $relatedInstance->table;
+        $relatedTable = $this->sanitizeIdentifier($relatedInstance->table);
+        $pivotTable   = $this->sanitizeIdentifier($pivotTable);
+        $foreignKey   = $this->sanitizeIdentifier($foreignKey);
+        $relatedKey   = $this->sanitizeIdentifier($relatedKey);
 
-        $stmt = $this->conn->prepare("SELECT {$relatedTable}.* FROM {$relatedTable} INNER JOIN {$pivotTable} ON {$pivotTable}.{$relatedKey} = {$relatedTable}.id WHERE {$pivotTable}.{$foreignKey} = ?");
+        $stmt = $this->conn->prepare(
+            "SELECT `{$relatedTable}`.* FROM `{$relatedTable}`
+             INNER JOIN `{$pivotTable}` ON `{$pivotTable}`.`{$relatedKey}` = `{$relatedTable}`.id
+             WHERE `{$pivotTable}`.`{$foreignKey}` = ?"
+        );
         $stmt->bind_param('i', $this->$localKey);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    private function sanitizeIdentifier(string $identifier): string
+    {
+        return preg_replace('/[^a-zA-Z0-9_]/', '', $identifier) ?? '';
     }
 }

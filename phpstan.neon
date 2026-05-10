@@ -1,0 +1,14 @@
+parameters:
+    level: 5
+    paths:
+        - app
+        - database
+    excludePaths:
+        - app/Core/Container.php  # uses ReflectionClass intentionally
+    checkMissingIterableValueType: false
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        # PDO::prepare() can return false — we check explicitly in BaseRepository
+        - message: '#Call to a method on possibly false#'
+          path: app/Repositories/BaseRepository.php

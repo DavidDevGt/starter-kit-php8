@@ -76,7 +76,7 @@ class Application
 
     private function registerErrorHandler(): void
     {
-        $isProduction = ($_ENV['APP_ENV'] ?? 'production') === 'production';
+        $isProduction = strtolower($_ENV['APP_ENV'] ?? 'production') === 'production';
 
         set_exception_handler(static function (\Throwable $e) use ($isProduction): void {
             error_log($e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());

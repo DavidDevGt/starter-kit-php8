@@ -104,10 +104,15 @@ class Router
 
     private function matchPath(string $routePath, string $requestPath): ?array
     {
-        $pattern = preg_replace('/\{([a-zA-Z_]+)\}/', '(?P<$1>[^/]+)', $routePath);
+        // Cap request path length to prevent ReDoS via catastrophic backtracking
+        if (strlen($requestPath) > 2048) {
+            return null;
+        }
+
+        $pattern = preg_replace('/\{([a-zA-Z_]+)\}/', '(?P<$1>[^/]++)', $routePath);
         $pattern = "#^{$pattern}$#";
 
-        if (!preg_match($pattern, $requestPath, $matches)) {
+        if (@preg_match($pattern, $requestPath, $matches) !== 1) {
             return null;
         }
 

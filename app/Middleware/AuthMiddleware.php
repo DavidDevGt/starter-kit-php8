@@ -21,6 +21,12 @@ class AuthMiddleware implements MiddlewareInterface
             return $this->unauthenticated($request);
         }
 
+        // Enforce session lifetime; destroy and redirect on expiry
+        if (isset($_SESSION['_expires']) && $_SESSION['_expires'] < time()) {
+            session_destroy();
+            return $this->unauthenticated($request);
+        }
+
         TenantContext::set((int) $_SESSION['company_id']);
 
         $request = $request
