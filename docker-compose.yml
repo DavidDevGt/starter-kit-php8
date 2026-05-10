@@ -50,7 +50,6 @@ services:
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       # Serve static assets directly — no need to hit PHP-FPM
       - ./public:/var/www/html/public:ro
-      - ./src:/var/www/html/src:ro
     networks:
       - backend
     depends_on:

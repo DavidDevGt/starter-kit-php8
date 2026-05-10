@@ -42,7 +42,8 @@ info "MySQL is ready."
 # ── 4. Wait for Redis to be healthy ─────────────────────────────────────────
 info "Waiting for Redis..."
 attempt=0
-until docker compose exec -T cache redis-cli ping 2>/dev/null | grep -q PONG; do
+REDIS_PASS="$(grep -m1 '^REDIS_PASSWORD=' .env | cut -d= -f2-)"
+until docker compose exec -T cache redis-cli --no-auth-warning -a "${REDIS_PASS}" ping 2>/dev/null | grep -q PONG; do
     attempt=$((attempt + 1))
     if [ "$attempt" -ge 15 ]; then
         error "Redis did not become healthy."
