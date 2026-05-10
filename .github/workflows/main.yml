@@ -6,9 +6,18 @@ on:
   pull_request:
     branches: ["main"]
 
-# ── Shared CI-only DB credentials ────────────────────────────────────────────
-# Override these in GitHub → Settings → Secrets for extra isolation,
-# but the defaults below are safe for ephemeral CI containers.
+# Cancel any in-progress run on the same branch/PR to avoid wasted minutes
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Minimal permissions — jobs that need more declare it explicitly
+permissions:
+  contents: read
+
+# ── CI-only DB credentials ──────────────────────────────────────────────────
+# Override in GitHub → Settings → Secrets for extra isolation.
+# The defaults below are safe for ephemeral CI containers.
 env:
   CI_DB_NAME: starter_kit_test
   CI_DB_USER: ${{ secrets.TEST_DB_USER || 'ci_user' }}
@@ -16,49 +25,63 @@ env:
   CI_DB_ROOT: ${{ secrets.TEST_DB_ROOT_PASSWORD || 'ci_root_pass' }}
 
 jobs:
-  # ── Static analysis ──────────────────────────────────────────────────────────
+  # ── 1. Validate + Static Analysis ────────────────────────────────────────────
   analyse:
-    name: PHPStan (level 5)
+    name: Lint & Analyse
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up PHP
+      - name: Set up PHP 8.2
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
           extensions: pdo_mysql, redis, opcache, intl, zip, bcmath, mbstring
           coverage: none
+          tools: composer:v2
+
+      - name: Validate composer.json & composer.lock
+        run: composer validate --strict --no-interaction
 
       - name: Cache Composer packages
         uses: actions/cache@v4
         with:
           path: vendor
-          key: composer-${{ hashFiles('composer.lock') }}
-          restore-keys: composer-
+          key: composer-8.2-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-8.2-
 
       - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        run: composer install --no-interaction --no-ansi --prefer-dist --optimize-autoloader
 
       - name: Security audit
-        run: composer audit
+        run: composer audit --no-ansi
 
-      - name: Run PHPStan
-        run: vendor/bin/phpstan analyse --no-progress
+      - name: PHPStan (level 5)
+        # --error-format=github emits inline annotations directly on PRs
+        run: vendor/bin/phpstan analyse --no-progress --error-format=github
 
-  # ── Unit & feature tests ─────────────────────────────────────────────────────
+  # ── 2. Tests — PHP matrix (8.2 / 8.3 / 8.4) ───────────────────────────────
   test:
-    name: PHPUnit
+    name: Tests — PHP ${{ matrix.php }}
+    needs: analyse          # Don't run tests if linting/analysis fails
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false      # Report all PHP versions even if one fails
+      matrix:
+        php: ["8.2", "8.3", "8.4"]
 
     services:
       mysql:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: ${{ env.CI_DB_ROOT }}
-          MYSQL_DATABASE: ${{ env.CI_DB_NAME }}
-          MYSQL_USER: ${{ env.CI_DB_USER }}
-          MYSQL_PASSWORD: ${{ env.CI_DB_PASS }}
+          MYSQL_DATABASE:      ${{ env.CI_DB_NAME }}
+          MYSQL_USER:          ${{ env.CI_DB_USER }}
+          MYSQL_PASSWORD:      ${{ env.CI_DB_PASS }}
         ports:
           - 3306:3306
         options: >-
@@ -81,22 +104,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up PHP
+      - name: Set up PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.2"
+          php-version: ${{ matrix.php }}
           extensions: pdo_mysql, redis, opcache, intl, zip, bcmath, mbstring
-          coverage: xdebug
+          # pcov is ~10x faster than xdebug; only enable on the canonical version
+          coverage: ${{ matrix.php == '8.2' && 'pcov' || 'none' }}
+          tools: composer:v2
 
       - name: Cache Composer packages
         uses: actions/cache@v4
         with:
           path: vendor
-          key: composer-${{ hashFiles('composer.lock') }}
-          restore-keys: composer-
+          key: composer-${{ matrix.php }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ matrix.php }}-
 
       - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist
+        run: composer install --no-interaction --no-ansi --prefer-dist
 
       - name: Run migrations
         env:
@@ -111,21 +136,55 @@ jobs:
 
       - name: Run tests
         env:
-          APP_ENV: testing
-          APP_KEY: ci-app-key-not-used-in-tests-00000
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_NAME: ${{ env.CI_DB_NAME }}
-          DB_USER: ${{ env.CI_DB_USER }}
-          DB_PASS: ${{ env.CI_DB_PASS }}
+          APP_ENV:    testing
+          APP_KEY:    ci-app-key-not-used-in-tests-00000
+          DB_HOST:    127.0.0.1
+          DB_PORT:    3306
+          DB_NAME:    ${{ env.CI_DB_NAME }}
+          DB_USER:    ${{ env.CI_DB_USER }}
+          DB_PASS:    ${{ env.CI_DB_PASS }}
           REDIS_HOST: 127.0.0.1
           REDIS_PORT: 6379
-        run: vendor/bin/phpunit --coverage-text
+        run: |
+          # Build PHPUnit flags depending on PHP version
+          PHPUNIT_ARGS="--log-junit test-results.xml --colors=never"
+          if [ "${{ matrix.php }}" = "8.2" ]; then
+            PHPUNIT_ARGS="$PHPUNIT_ARGS --coverage-clover coverage.xml --coverage-text"
+          else
+            PHPUNIT_ARGS="$PHPUNIT_ARGS --no-coverage"
+          fi
 
-  # ── Docker build validation ──────────────────────────────────────────────────
+          vendor/bin/phpunit $PHPUNIT_ARGS 2>&1 | tee /tmp/phpunit-output.txt
+          exit ${PIPESTATUS[0]}
+
+      - name: Write job summary
+        if: always()
+        run: |
+          echo "### PHPUnit — PHP ${{ matrix.php }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          grep -E "^(Tests:|OK \(|ERRORS!|FAILURES!|Assertions:|Time:)" /tmp/phpunit-output.txt \
+            >> "$GITHUB_STEP_SUMMARY" \
+            || tail -6 /tmp/phpunit-output.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-php${{ matrix.php }}
+          path: |
+            test-results.xml
+            coverage.xml
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # ── 3. Docker build — only runs when all tests are green ─────────────────
   docker:
     name: Docker build
+    needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     steps:
       - uses: actions/checkout@v4
 
@@ -133,7 +192,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build production image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: false
