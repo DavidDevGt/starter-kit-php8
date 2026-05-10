@@ -56,7 +56,7 @@ class TenantController
 
     public function stripeWebhook(Request $request): Response
     {
-        $payload   = file_get_contents('php://input') ?: '';
+        $payload   = $request->rawBody();
         $signature = $request->header('Stripe-Signature') ?? '';
         $secret    = $_ENV['STRIPE_WEBHOOK_SECRET'] ?? '';
 
