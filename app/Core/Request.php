@@ -109,6 +109,16 @@ class Request
             : null;
     }
 
+    public function rawBody(): string
+    {
+        // Allow tests to inject a raw body via setAttribute('_raw_body', ...)
+        $override = $this->attributes['_raw_body'] ?? null;
+        if ($override !== null) {
+            return (string) $override;
+        }
+        return file_get_contents('php://input') ?: '';
+    }
+
     public function setAttribute(string $key, mixed $value): self
     {
         $clone             = clone $this;

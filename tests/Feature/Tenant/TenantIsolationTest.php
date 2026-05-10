@@ -110,6 +110,10 @@ class TenantIsolationTest extends TestCase
         TenantContext::set(1);
 
         $userRepo = Mockery::mock(UserRepository::class);
+        // UserController::store() fetches the requester's record to check their role
+        $userRepo->shouldReceive('findById')->with(1)->andReturn([
+            'id' => 1, 'role_id' => 1, 'company_id' => 1,
+        ]);
 
         $subService = Mockery::mock(SubscriptionService::class);
         $subService->shouldReceive('canAddUser')->with(1)->andReturn(false);
@@ -124,6 +128,7 @@ class TenantIsolationTest extends TestCase
             query:  [],
             server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/api/v1/users'],
         );
+        $request = $request->setAttribute('user_id', 1);
 
         $response = $this->router->dispatch($request, $this->container);
 

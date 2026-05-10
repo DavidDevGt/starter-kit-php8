@@ -25,8 +25,9 @@ class Response
 
     public static function redirect(string $url, int $status = 302): self
     {
-        // Only allow relative URLs to prevent open redirect
-        if (str_contains($url, '://') || str_starts_with($url, '//')) {
+        // Block any URL with a scheme (http:, javascript:, data:, ftp:, etc.) or protocol-relative //
+        $parsed = parse_url($url);
+        if (isset($parsed['scheme']) || str_starts_with($url, '//')) {
             $url = '/';
         }
         return new self(status: $status, headers: ['Location' => $url]);
